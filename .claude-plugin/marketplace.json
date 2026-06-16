@@ -1,0 +1,11 @@
+{
+  "name": "cc-kanban",
+  "owner": { "name": "Chris Clark" },
+  "plugins": [
+    {
+      "name": "kanban",
+      "source": "./",
+      "description": "Agile/kanban backlog for Claude Code — epics, stories, and issues as markdown with /kanban:* commands and a generated board."
+    }
+  ]
+}

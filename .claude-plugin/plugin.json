@@ -1,0 +1,6 @@
+{
+  "name": "kanban",
+  "version": "0.1.0",
+  "description": "Agile/kanban backlog for Claude Code — epics, stories, and issues as markdown with /kanban:* commands and a generated board. Project-local or global.",
+  "author": { "name": "Chris Clark" }
+}
