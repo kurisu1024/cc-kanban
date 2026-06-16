@@ -1,6 +1,6 @@
 ---
 description: Add a child issue under a story.
-argument-hint: "<description> --story <STORY-ID>"
+argument-hint: "<description> --story <STORY-ID> [--global|--project]"
 ---
 
 Apply the `kanban-conventions` skill. Ensure the store exists.

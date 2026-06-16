@@ -1,6 +1,6 @@
 ---
 description: Collaboratively groom the backlog — set priority, size, epic, and links.
-argument-hint: "[--epic PREFIX]"
+argument-hint: "[--epic PREFIX] [--global|--project]"
 ---
 
 Apply the `kanban-conventions` skill.

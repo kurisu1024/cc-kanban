@@ -1,6 +1,6 @@
 ---
 description: Recommend what to work on next.
-argument-hint: "[--epic PREFIX]"
+argument-hint: "[--epic PREFIX] [--global|--project]"
 ---
 
 Apply the `kanban-conventions` skill.

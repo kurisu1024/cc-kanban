@@ -1,6 +1,6 @@
 ---
 description: Adopt existing markdown items into the kanban store (idempotent).
-argument-hint: "<source-dir>"
+argument-hint: "<source-dir> [--global|--project]"
 ---
 
 Apply the `kanban-conventions` skill. Ensure the store exists (init if needed).

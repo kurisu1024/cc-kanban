@@ -1,6 +1,6 @@
 ---
 description: Add a new story to the backlog.
-argument-hint: "<description> [--epic PREFIX] [--priority high|medium|low] [--size S|M|L]"
+argument-hint: "<description> [--epic PREFIX] [--priority high|medium|low] [--size S|M|L] [--global|--project]"
 ---
 
 Apply the `kanban-conventions` skill. Ensure the store exists (init if needed).

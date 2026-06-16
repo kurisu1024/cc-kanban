@@ -1,6 +1,6 @@
 ---
 description: Add a new epic (a group of stories).
-argument-hint: "<name> [--prefix XYZ]"
+argument-hint: "<name> [--prefix XYZ] [--global|--project]"
 ---
 
 Apply the `kanban-conventions` skill. Ensure the store exists (init if needed).
