@@ -1,2 +1,29 @@
+# OS
 .DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node / tooling (in case commands grow a build or test step)
 node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npmrc
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Logs & temp
+*.log
+*.tmp
+tmp/
+
+# Local kanban store (this repo authors the plugin; it shouldn't ship a store)
+.claude/.kanban/
