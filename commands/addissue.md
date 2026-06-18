@@ -1,15 +1,15 @@
 ---
-description: Add a child issue under a story.
-argument-hint: "<description> --story <STORY-ID> [--global|--project]"
+description: Add a sub-issue (nested checkbox) under a story card.
 ---
 
-Apply the `kanban-conventions` skill. Ensure the store exists.
+Apply the `kanban-conventions` skill. Add a sub-issue to a story.
 
-Create an issue from: $ARGUMENTS
+Args: `<desc>` (required), `--story <ID>` (required), `--board <name|path>`.
 
-- Require `--story <id>`; if it is missing or unknown, stop and report.
-- Allocate `ISS-NNN` (bump the `ISS` counter).
-- Write `issues/ISS-NNN-<kebab-title>.md` with `type: issue`,
-  `parent: <STORY-ID>`, `status: backlog`, and today's `created`/`updated`.
-- Regenerate `board.md`.
-- Print the issue id and its parent story.
+Steps:
+1. Resolve the board (skill §1).
+2. Find the story card line whose id token is `[<ID>]`. If not found, STOP and
+   report.
+3. Insert `  - [ ] <desc>` (two-space indent) immediately after the story card's
+   existing sub-issues (or right after the card line if it has none).
+4. Confirm: print the parent id and the sub-issue text.

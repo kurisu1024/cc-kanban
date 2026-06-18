@@ -1,17 +1,15 @@
 ---
-description: Add a new epic (a group of stories).
-argument-hint: "<name> [--prefix XYZ] [--global|--project]"
+description: Declare an epic tag for use on cards (epics are #epic/<slug> tags).
 ---
 
-Apply the `kanban-conventions` skill. Ensure the store exists (init if needed).
+Apply the `kanban-conventions` skill. Epics are not files or columns — they are
+`#epic/<slug>` tags applied to story cards.
 
-Create an epic from: $ARGUMENTS
+Args: `<slug>` (required), `--board <name|path>`.
 
-- Derive a story `prefix` from `--prefix`, or from the name (uppercase
-  initials / leading letters). Ensure it is unique in `config.json.idCounters`.
-- Allocate `EPIC-NNN` (bump the `EPIC` counter). Initialize the new prefix
-  counter at 0.
-- Write `epics/EPIC-NNN-<kebab-name>.md` with `type: epic`, the chosen `prefix`
-  in frontmatter, `status: backlog`, and today's `created`/`updated`.
-- Regenerate `board.md`.
-- Print the epic id, name, and story prefix.
+Steps:
+1. Resolve the board (skill §1).
+2. Normalize `<slug>` to kebab-case.
+3. Report the tag to use: `apply `#epic/<slug>` to cards via `addstory --epic
+   <slug>` or `groom``. Mention `backlog --epic <slug>` filters by it.
+   (No file is created; the epic "exists" once a card carries the tag.)
