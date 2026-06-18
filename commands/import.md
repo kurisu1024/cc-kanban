@@ -1,19 +1,26 @@
 ---
-description: Adopt existing markdown items into the kanban store (idempotent).
-argument-hint: "<source-dir> [--global|--project]"
+description: Adopt existing markdown into board cards (idempotent).
 ---
 
-Apply the `kanban-conventions` skill. Ensure the store exists (init if needed).
+Apply the `kanban-conventions` skill. Import markdown into a board.
 
-Import from the directory in `$ARGUMENTS` (e.g. `~/.claude/stories`):
+Args: `<source>` (a file or directory of markdown), `--board <name|path>`
+(create with `init` if absent), `--epic <slug>` (default epic for imported
+cards), `--col <Column>` (default `Backlog`).
 
-- For each markdown file with frontmatter `id` / `type`, copy it into the subdir
-  matching its `type` (`epics` / `stories` / `issues`, defaulting to `story`).
-- Add `status: backlog` if missing. Infer `epic` from the id prefix (e.g.
-  `CTX-001` → prefix `CTX`) and register that prefix in `config.json.idCounters`
-  at the highest-seen number.
-- **Skip any id that already exists** in the store (idempotent — never
-  duplicate).
-- If prefixes imply epics that have no epic file, offer to create stub epic files
-  (ask first).
-- Regenerate `board.md` and report what was imported vs skipped.
+Steps:
+1. Resolve or `init` the board.
+2. Read `<source>`:
+   - A directory of per-item files: each file → one story card (title from the
+     first `#` heading or filename; map any `priority`/`size` frontmatter to
+     `#p/`/`#sz/`).
+   - A single structured page (e.g. a wiki status/open-questions page): map
+     sections to columns where the section name implies status (e.g.
+     "Recently done"→Done, "Next up"→Todo, "In progress"→Doing,
+     unchecked bullets under "Open questions"→Backlog, checked `[x]`→Done).
+3. **Idempotency:** before adding, derive a stable slug per source item; skip any
+   item already represented on the board (match by title text). Never duplicate.
+4. Assign ids via skill §4 as you add. Apply `--epic`/tags.
+5. Insert cards under their mapped columns (or `--col`). Preserve the settings
+   block.
+6. Report: counts added per column, and anything skipped.
