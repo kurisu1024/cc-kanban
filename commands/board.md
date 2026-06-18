@@ -1,16 +1,17 @@
 ---
-description: Render the kanban board and regenerate board.md.
-argument-hint: "[--epic PREFIX] [--all] [--global|--project]"
+description: Print an ASCII summary of a board (read-only). --open opens it in Obsidian.
 ---
 
-Apply the `kanban-conventions` skill.
+Apply the `kanban-conventions` skill. Render a board to the terminal.
 
-- Resolve the store and read all item files. (`--global`/`--project` select which
-  store; see skill §1.)
-- Build the board: one section per configured column, items grouped by epic when
-  `settings.groupBoardByEpic`.
-- If `$ARGUMENTS` contains `--epic PREFIX`, filter to that epic.
-- If `$ARGUMENTS` contains `--all`, render the **merged** view across both stores
-  with scope badges (skill §6) and print only — do **not** write `board.md`.
-- Otherwise print the ASCII board (with the priority-glyph legend) **and** write
-  the same content as markdown tables to that store's `board.md`.
+Args: `--epic <slug>` (filter), `--open`, `--board <name|path>`.
+
+Steps:
+1. Resolve the board (skill §1). If `--open`, open it via `obsidian://open?path=`
+   (URL-encode the vault-relative path) and stop.
+2. Parse columns (`##` headings) and their cards. Optionally filter to
+   `#epic/<slug>`.
+3. Print one section per column; each card on a line as
+   `<glyph> [ID] text` using priority glyphs `◆ high · ▣ med · ○ low`
+   (and `⛔` if `#blocked`, `⏸` if `#paused`). Show sub-issue counts as `(n/m)`.
+4. Print a legend. Write NOTHING to disk.

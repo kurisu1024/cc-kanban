@@ -1,13 +1,14 @@
 ---
-description: Recommend what to work on next.
-argument-hint: "[--epic PREFIX] [--global|--project]"
+description: Recommend the next card to work on.
 ---
 
-Apply the `kanban-conventions` skill.
+Apply the `kanban-conventions` skill. Recommend the next card.
 
-- Resolve the store and consider items in `backlog` / `todo` (optionally filtered
-  by `--epic`).
-- Rank by `priority` (high > medium > low), then smaller `size` first, then fewer
-  unmet dependencies.
-- Present the top 3–5 with a one-line rationale each, and recommend one to start.
-- Offer to `/kanban:move` the chosen item to `doing`.
+Args: `--epic <slug>`, `--board <name|path>`.
+
+Steps:
+1. Resolve the board (skill §1).
+2. Candidates = cards in `## Todo` then `## Backlog` (Todo first). Filter by
+   `--epic` if given.
+3. Rank by priority (high→low); break ties by smaller size (S<M<L); then file
+   order. Recommend the top card and briefly say why.

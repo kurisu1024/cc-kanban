@@ -1,13 +1,14 @@
 ---
-description: List backlog items, optionally filtered.
-argument-hint: "[--epic PREFIX] [--label X] [--priority high|medium|low] [--all] [--global|--project]"
+description: List/filter Backlog (and Todo) cards.
 ---
 
-Apply the `kanban-conventions` skill.
+Apply the `kanban-conventions` skill. List near-term cards.
 
-- Resolve the store and read items whose `status` is `backlog`.
-  (`--global`/`--project` select which store; `--all` unions both — skill §1/§6.)
-- Apply any filters from `$ARGUMENTS` (`--epic`, `--label`, `--priority`).
-- Print a compact list — `id · priority · size · title · epic` — sorted by
-  priority (high → low), then size (S → L). Under `--all`, prefix each row with
-  its scope badge (`🌐`/`📁`).
+Args: `--epic <slug>`, `--priority high|med|low`, `--board <name|path>`.
+
+Steps:
+1. Resolve the board (skill §1).
+2. Collect cards under `## Backlog` and `## Todo`. Apply `--epic`/`--priority`
+   filters by tag.
+3. Print them grouped by column, sorted by priority (high→low), each as
+   `[ID] text  #tags`.

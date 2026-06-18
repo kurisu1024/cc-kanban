@@ -1,14 +1,13 @@
 ---
-description: Show a single item (epic, story, or issue) by id.
-argument-hint: "<ID> [--all] [--global|--project]"
+description: Show one card with its sub-issues and tags.
 ---
 
-Apply the `kanban-conventions` skill.
+Apply the `kanban-conventions` skill. Show a single card.
 
-- Resolve the store and find the item file by id (search `epics/`, `stories/`,
-  `issues/`). With `--all`, search **both** stores and show the matching item's
-  scope badge (`🌐`/`📁`); if the same id exists in both, show both and label
-  each. (`--global`/`--project` select a single store — skill §1.)
-- Print a tidy summary of its frontmatter, then its body. For an epic, also list
-  its child stories; for a story, list its child issues.
-- If not found, suggest the closest matching ids.
+Args: `<ID>` (required), `--board <name|path>`.
+
+Steps:
+1. Resolve the board (skill §1).
+2. Find `[<ID>]`. Print its column, full text, parsed tags
+   (epic/priority/size/flags), and its sub-issues with checkbox state.
+3. If not found, report and suggest `backlog`.
