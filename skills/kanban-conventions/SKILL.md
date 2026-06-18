@@ -1,150 +1,75 @@
 ---
 name: kanban-conventions
-description: Core conventions for the kanban plugin — store resolution, item schema, id allocation, status columns, and board rendering. Every /kanban:* command applies these so they behave consistently.
+description: Core conventions for the kanban plugin — Obsidian Kanban board resolution, card grammar, id derivation, column reading, and safe edits. Every /kanban:* command applies these.
 ---
 
-# Kanban Conventions
+# Kanban Conventions (Obsidian Kanban-native)
 
-Shared rules for all `/kanban:*` commands. When a kanban command runs, apply
-these rules. They are the single source of truth — command files stay thin and
-defer here.
+Shared rules for all `/kanban:*` commands. The **Obsidian Kanban board `.md`
+file is the sole source of truth** — there is no separate store, no per-item
+files, no generated board. State lives in the board file.
 
-## 1. Resolve the store directory
+## 1. Resolve the board
+- `--board <name|path>`: use that board. A bare name resolves to
+  `~/bigbrain/boards/<name>.md`.
+- Else: if exactly one `*.md` board exists in `~/bigbrain/boards/`, use it.
+- Else (none or many): list candidates and ask which, or offer `init`.
+- A board is a `*.md` file whose YAML frontmatter contains `kanban-plugin: board`.
 
-There are two stores: a **project store** at some `<repo>/.claude/.kanban/` and
-the **global store** at `~/.claude/.kanban/`. Most commands act on a single
-**active store** (the read/write target), resolved in this order:
-
-1. `--global` → the global store (`~/.claude/.kanban/`).
-2. `--project` → the nearest project store via walk-up (below). If none is
-   found, stop and offer `init` — do **not** silently fall back to global.
-3. **Default:** walk up from cwd for a project store; first hit wins. If none,
-   use the global store.
-
-**Walk-up rule:** starting at cwd, check each ancestor directory `D` for
-`D/.claude/.kanban/`; the first match is the project store. Stop at the
-filesystem root. **Exclude `$HOME` itself** from the walk — `~/.claude/.kanban/`
-*is* the global store and must never be matched as a project store. So the
-global store is reached only via `--global` or as the default fallback.
-
-- If a writing command resolves to a store that does not exist yet, scaffold it
-  first (see `init`).
-- `--all` is not an active-store selector; it is a **read-only merged view**
-  across both stores (see §6).
-
-Layout:
-
+## 2. Board file anatomy
 ```
-.claude/.kanban/
-  config.json        # scope, columns, id counters, settings
-  board.md           # GENERATED view — never the source of truth
-  epics/   stories/  issues/
+---
+kanban-plugin: board
+cc-kanban-prefix: PP        # id prefix for this board
+---
+
+## Backlog
+- [ ] [PP-001] Story title #epic/slug #p/high #sz/M
+  - [ ] a sub-issue
+
+## Todo
+## Doing
+## Review
+## Done
+
+%% kanban:settings
 ```
-
-## 2. config.json
-
-```json
-{
-  "scope": "project",
-  "columns": ["backlog", "todo", "doing", "review", "done"],
-  "idCounters": { "EPIC": 0, "ISS": 0 },
-  "settings": { "defaultStatus": "backlog", "groupBoardByEpic": true }
-}
+{"kanban-plugin":"board","list-collapse":[false,false,false,false,false]}
 ```
-
-- `scope` is `"project"` or `"global"`, written at `init` (`"global"` under
-  `--global`). It labels the store in merged views and tells cross-store moves
-  which side they are on.
-- Per-epic story prefixes (e.g. `CTX`) are added to `idCounters` as epics are
-  created or imported.
-- `idCounters` are **per-store and independent**. Global `CTX-001` and project
-  `CTX-001` may both exist; they only ever appear side by side in the merged
-  view, where the scope badge (§6) disambiguates them.
-
-## 3. Item files
-
-- Filename: `<ID>-<kebab-title>.md` in the subdir matching its `type`.
-- Frontmatter:
-
-```yaml
-id:        # epic → EPIC-NNN · story → <PREFIX>-NNN · issue → ISS-NNN
-type:      # epic | story | issue
-epic:      # story → parent epic's prefix (epics: a `prefix:` field instead)
-parent:    # issue → parent story id
-status:    # one of config.columns
-priority:  # high | medium | low
-size:      # S | M | L
-labels: []
-created:   # YYYY-MM-DD (today)
-updated:   # YYYY-MM-DD (today)
+%%
 ```
+- **Columns** are the `##` headings, in file order. Read them from the file —
+  never assume a fixed set beyond what `init` writes.
+- The `%% kanban:settings %%` block is **always last**; preserve it verbatim on
+  every write.
 
-- Body: free markdown (problem / solution / acceptance criteria / notes).
-- Use today's date for `created`/`updated`.
+## 3. Card grammar
+`^(\s*)- \[( |x|X)\] (?:\[([A-Z]{2,4}-\d{3,})\] )?(.*)$`
+- **Story card:** no indent, has an `[ID]` token.
+- **Sub-issue:** indented ≥ 2 spaces, no `[ID]`, belongs to the nearest story above.
+- **Tags in text:** `#epic/<slug>` · `#p/high|med|low` · `#sz/S|M|L` · `#blocked` · `#paused`.
+- **Done** cards live under `## Done` and are checked `- [x]`.
 
-## 4. ID allocation (deterministic)
+## 4. ID derivation (stateless)
+- Prefix = frontmatter `cc-kanban-prefix`.
+- New id = max existing `PREFIX-NNN` on the board + 1 (else 1), zero-padded to 3.
+- Never reuse an id within one operation. (A deleted id may later recur — this is
+  accepted; we keep no high-water mark.)
 
-- Read the relevant counter in `config.json.idCounters`, increment it, write it
-  back, then use the new value. **Never reuse an id.**
-- Epics: `EPIC-NNN` (zero-padded to 3). Each epic also declares a story `prefix`.
-- Stories: `<EPIC_PREFIX>-NNN` from that epic's counter. With no epic, use a
-  default `STORY` prefix/counter.
-- Issues: `ISS-NNN`.
+## 5. Editing rules
+- Edits are **line-scoped and minimal**: insert/move/retag only the affected
+  line(s). Never reflow or reformat the whole file.
+- Preserve YAML frontmatter and the settings block on every write.
+- `move <ID> <column>` relocates the card line (and its indented sub-issues)
+  under the target `## Column`; set `- [x]` iff the target is `Done`, else `- [ ]`.
 
-## 5. Status / columns
+## 6. Read/render
+- `board` parses the file and prints an ASCII summary grouped by column, with a
+  legend: priority `◆ high · ▣ med · ○ low`, `⛔ blocked · ⏸ paused`. It writes
+  nothing.
 
-- Move items only between configured `columns`; validate the target.
-- On move: set `status`, bump `updated` to today, then regenerate the board.
-
-## 6. Board (`board.md` + printed)
-
-- Group by column; within a column, group by epic when
-  `settings.groupBoardByEpic`.
-- Print an ASCII board to the user **and** write the same content as markdown
-  tables to `board.md`.
-- Priority glyphs: `◆` high · `▣` medium · `○` low (include a legend).
-
-### Merged view (`--all`)
-
-When a read command (`board`, `backlog`, `story`) is given `--all`, union the
-items from **both** stores (project + global; if only one exists, `--all` equals
-that one):
-
-- Badge every item by its store: `🌐` global · `📁` project. Add these to the
-  legend alongside the priority glyphs.
-- Layout: column → scope subsection → epic grouping. The badge disambiguates ids
-  that exist in both stores.
-- `--all` is **print-only**. Never write a merged board to either `board.md`;
-  each store's `board.md` stays single-scope and canonical. (Regenerate a store's
-  own `board.md` only from that store's own items.)
-
-## 7. Idempotency & safety
-
-- `init` never clobbers an existing store.
-- `import` skips ids that already exist; only fills in missing `status`/`epic`.
-- Always regenerate `board.md` after any mutation.
-- `board.md` is derived — never treat hand-edits to it as truth.
-- Never delete item files unless explicitly asked.
-- Keep frontmatter valid YAML; keep writes minimal and scoped.
-
-## 8. Cross-store moves (promote / demote)
-
-`move <ID> --to global|project` relocates an item between stores (distinct from
-`move <ID> <column>`, which only changes `status`). Steps:
-
-1. Locate the item: search the active store; if not found there, search the
-   other store. Error if the id is unknown or already lives in the target scope.
-2. **Reallocate the id** from the *target* store's counter for that id family
-   (the epic prefix for stories, or `EPIC` / `ISS`), creating the counter if
-   absent. Never carry the source id across — that would risk a collision.
-3. **Links:** keep `epic` (story) or `parent` (issue) only if the referent
-   exists in the target store; otherwise **detach** it (clear the field) and warn
-   the user which link was dropped.
-4. **Moving an epic:** offer to bring its child stories (and their issues) along,
-   each reallocated by this same procedure. If declined, move the epic alone and
-   leave its source-store children detached from it.
-5. Write the item into the target store's matching subdir, remove it from the
-   source store, and bump `updated`.
-6. Regenerate **both** stores' `board.md` (both changed).
-7. Confirm with the remap and any detachments, e.g.
-   `📁 CTX-003 → 🌐 CTX-005 (epic link detached: "Context & Memory IQ" not in global)`.
+## 7. Safety
+- `init` never clobbers an existing board.
+- `import` is idempotent: skip a source that maps to an `[ID]` already present.
+- Never delete a card unless explicitly asked.
+- A missing/malformed board → offer `init` instead of erroring hard.
