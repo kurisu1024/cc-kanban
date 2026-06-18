@@ -1,94 +1,115 @@
-# kanban — agile backlog for Claude Code
+# cc-kanban
 
-A lightweight Claude Code plugin that manages an agile/kanban backlog of
-**epics → stories → issues** as markdown files, driven by `/kanban:*` slash
-commands, with a generated board view. No runtime, no dependencies — commands
-are prompt templates that drive file operations via one shared skill
-(`kanban-conventions`).
+> Obsidian Kanban-native backlog for Claude Code — `/kanban:*` commands
+> maintain board files as the single source of truth.
 
-## Store
+**Version 2.0.0**
 
-There are two stores — a **project** store per repo and one **global** store —
-and commands act on whichever they resolve.
+## Overview
+
+cc-kanban is a Claude Code plugin that manages a project backlog through
+[Obsidian Kanban](https://github.com/mgmeyers/obsidian-kanban)-format board
+files. The board file **is** the data — no separate store, no generated
+`board.md`, no sync layer.
+
+Boards live at `~/bigbrain/boards/<name>.md` inside your Obsidian vault.
+Obsidian Kanban renders them visually; cc-kanban lets you manage them from
+the Claude Code agent.
+
+## Board format
+
+```yaml
+---
+kanban-plugin: board
+cc-kanban-prefix: PP
+---
+```
+
+Columns are `##` headings. Cards are checklist items under those headings.
+
+## Card grammar
 
 ```
-.claude/.kanban/
-  config.json        # scope, columns, id counters, settings
-  board.md           # generated kanban view
-  epics/  stories/  issues/
+- [ ] [PP-001] Story title #epic/slug #p/high #sz/M
+  - [ ] a sub-issue
 ```
 
-Each item is one markdown file with frontmatter (`id`, `type`, `status`,
-`priority`, `size`, `epic`/`parent`, …) plus a free body.
-
-### Global vs project stores
-
-Resolution picks one **active store** (the read/write target):
-
-1. `--global` → the global store at `~/.claude/.kanban/`.
-2. `--project` → the nearest project store (errors and offers `init` if none).
-3. **Default:** walk **up** from the current directory for a `.claude/.kanban/`
-   (git-style — so it resolves from any subfolder of the repo, not just the
-   root). If none is found, fall back to the global store.
-
-The walk-up stops at the filesystem root and never treats `~/.claude/.kanban/`
-itself as a project store, so the global store is only ever hit via `--global`
-or as the fallback. Each store keeps its own id counters, so the same id (e.g.
-`CTX-001`) can exist in both independently.
-
-**See everything at once.** Reads (`board`, `backlog`, `story`) accept `--all`
-to show a **merged** view across both stores, badged `🌐` global / `📁` project.
-`--all` is print-only and never rewrites either `board.md`.
-
-**Move between stores.** `/kanban:move <ID> --to global|project` promotes or
-demotes an item: it reallocates the id from the target store's counter, keeps the
-`epic`/`parent` link if the referent exists there (otherwise detaches it with a
-warning), and offers to bring an epic's child stories along.
+| Token | Meaning |
+|---|---|
+| `[PP-001]` | Story id (prefix from frontmatter, auto-incremented) |
+| `#epic/<slug>` | Epic grouping tag |
+| `#p/high\|med\|low` | Priority |
+| `#sz/S\|M\|L` | Size estimate |
+| `#blocked` / `#paused` | Status flags |
+| nested `  - [ ]` | Sub-issue (2-space indent, no id) |
+| `- [x]` under `## Done` | Completed card |
 
 ## Commands
 
-| Command | Does |
-|---------|------|
-| `/kanban:init [--global]` | scaffold the store |
-| `/kanban:addepic <name> [--prefix XYZ]` | new epic + story prefix |
-| `/kanban:addstory <desc> [--epic P] [--priority] [--size]` | new story → backlog |
-| `/kanban:addissue <desc> --story <ID>` | child issue |
-| `/kanban:board [--epic P] [--all]` | render board + regenerate `board.md` |
-| `/kanban:backlog [--epic --label --priority] [--all]` | filtered backlog list |
-| `/kanban:move <ID> <column>` | change status |
-| `/kanban:move <ID> --to global\|project` | promote/demote across stores |
-| `/kanban:story <ID> [--all]` | show one item |
-| `/kanban:groom [--epic P]` | collaboratively set priority/size/links |
-| `/kanban:pick [--epic P]` | recommend next work |
-| `/kanban:import <dir>` | adopt existing markdown (idempotent) |
+| Command | Description |
+|---|---|
+| `/kanban:init [name] [--prefix XYZ]` | Create `boards/<name>.md` with 5 columns and settings block |
+| `/kanban:addstory <desc> [--epic s] [--priority p] [--size s] [--col C]` | Append a story card |
+| `/kanban:addissue <desc> --story <ID>` | Add a sub-issue under a story |
+| `/kanban:addepic <slug>` | Declare an epic tag (no file created) |
+| `/kanban:move <ID> <column>` | Relocate a card; toggles `[x]` when target is Done |
+| `/kanban:board [--epic s] [--open]` | Print ASCII summary; `--open` opens in Obsidian |
+| `/kanban:backlog [--epic s] [--priority p]` | List Backlog + Todo cards |
+| `/kanban:story <ID>` | Show one card with sub-issues and tags |
+| `/kanban:groom [--epic s]` | Set priority/size/epic tags collaboratively |
+| `/kanban:pick [--epic s]` | Recommend the next card to work on |
+| `/kanban:import <source> [--board b] [--epic s] [--col C]` | Adopt markdown into board cards (idempotent) |
 
-Most commands also accept `--global` / `--project` to pick the store explicitly
-(default is project-first with global fallback). Columns:
-`backlog → todo → doing → review → done` (configurable in `config.json`).
+## Board resolution
 
-## Install (local)
+1. `--board <name|path>` — bare name → `~/bigbrain/boards/<name>.md`
+2. Single `*.md` board in `~/bigbrain/boards/` → use it automatically
+3. Multiple boards → list and prompt
+4. No board → offer `init`
 
-This repo is also a single-plugin marketplace. From Claude Code:
+## Settings block
+
+Every board ends with this block (Obsidian Kanban requires it):
 
 ```
-/plugin marketplace add ~/workspaces/personal/cc-kanban
+%% kanban:settings
+```json
+{"kanban-plugin":"board","list-collapse":[false,false,false,false,false]}
+```
+%%
+```
+
+cc-kanban preserves this block verbatim on every write.
+
+## Getting started
+
+```bash
+# Create a board
+/kanban:init myproject --prefix MP
+
+# Add some work
+/kanban:addstory "Set up CI" --priority high --size S
+/kanban:addstory "Write docs" --epic docs --priority med --size M
+/kanban:addissue "Add GitHub Actions workflow" --story MP-001
+
+# View the board
+/kanban:board
+
+# Move work through columns
+/kanban:move MP-001 Doing
+/kanban:move MP-001 Done
+```
+
+## Installation
+
+Install via the Claude Code plugin marketplace:
+
+```bash
 /plugin install kanban@cc-kanban
 ```
 
-(Or via CLI: `claude plugin marketplace add ~/workspaces/personal/cc-kanban`
-then `claude plugin install kanban@cc-kanban`.) Restart the session so the
-`/kanban:*` commands load.
+Or clone the repo and symlink into your plugins directory.
 
-## First run
+## License
 
-```
-/kanban:import ~/.claude/stories   # adopt the existing 12-story backlog
-/kanban:board                      # see them grouped into CTX / TUI / DAT epics
-```
-
-## Roadmap (post-MVP)
-
-- Back id-allocation + board regeneration with a small node script for
-  determinism.
-- `dependsOn` links + a real DAG-aware `/kanban:pick`.
-- `/kanban:export` to feed claude-stats analytics.
+MIT
