@@ -1,6 +1,6 @@
 {
   "name": "kanban",
-  "version": "1.1.0",
-  "description": "Agile/kanban backlog for Claude Code — epics, stories, and issues as markdown with /kanban:* commands and a generated board. Project-local or global.",
+  "version": "2.0.0",
+  "description": "Obsidian Kanban-native backlog for Claude Code — /kanban:* commands maintain Obsidian board files (boards/*.md) as the single source of truth.",
   "author": { "name": "Chris Clark" }
 }
