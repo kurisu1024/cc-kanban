@@ -10,6 +10,6 @@ Args: `<slug>` (required), `--board <name|path>`.
 Steps:
 1. Resolve the board (skill §1).
 2. Normalize `<slug>` to kebab-case.
-3. Report the tag to use: `apply `#epic/<slug>` to cards via `addstory --epic
-   <slug>` or `groom``. Mention `backlog --epic <slug>` filters by it.
-   (No file is created; the epic "exists" once a card carries the tag.)
+3. Report the tag to use — `#epic/<slug>` — and how to apply it: via
+   `addstory --epic <slug>` or `groom`. Mention `backlog --epic <slug>` filters
+   by it. (No file is created; the epic "exists" once a card carries the tag.)

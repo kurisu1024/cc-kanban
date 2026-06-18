@@ -70,6 +70,7 @@ cc-kanban-prefix: PP        # id prefix for this board
 
 ## 7. Safety
 - `init` never clobbers an existing board.
-- `import` is idempotent: skip a source that maps to an `[ID]` already present.
+- `import` is idempotent: skip a source item already represented on the board
+  (matched by card title text — source items have no id of their own).
 - Never delete a card unless explicitly asked.
 - A missing/malformed board → offer `init` instead of erroring hard.

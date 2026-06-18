@@ -12,3 +12,4 @@ Steps:
    `--epic` if given.
 3. Rank by priority (high→low); break ties by smaller size (S<M<L); then file
    order. Recommend the top card and briefly say why.
+4. Offer to `move <ID> Doing` for the chosen card (don't move without confirmation).
