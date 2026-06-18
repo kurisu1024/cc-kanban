@@ -1,25 +1,20 @@
 ---
-description: Move an item between columns, or between stores with --to.
-argument-hint: "<ID> <column>  |  <ID> --to global|project"
+description: Move a card to another column (status change).
 ---
 
-Apply the `kanban-conventions` skill.
+Apply the `kanban-conventions` skill. Relocate a card between columns.
 
-**Column move** — `$ARGUMENTS` is `<ID> <column>`:
+Args: `<ID>` (required), `<column>` (required; must match an existing `##`
+heading, case-insensitive), `--board <name|path>`.
 
-- Validate the id exists and the column is one of `config.json.columns`; if not,
-  stop and show the valid values.
-- Update the item's `status` and bump `updated` to today.
-- Regenerate `board.md`.
-- Confirm the move (`<old> → <new>` column).
-
-**Cross-store move** — `$ARGUMENTS` is `<ID> --to global|project`:
-
-- Follow skill §8 (Cross-store moves): locate the item across both stores,
-  reallocate its id from the **target** store's counter, keep or detach the
-  `epic`/`parent` link by whether the referent exists in the target, and — for an
-  epic — offer to bring its child stories along.
-- Write into the target store, remove from the source, bump `updated`, and
-  regenerate **both** stores' `board.md`.
-- Confirm the remap and any detached links
-  (e.g. `📁 CTX-003 → 🌐 CTX-005 (epic link detached)`).
+Steps:
+1. Resolve the board (skill §1).
+2. Read the `##` headings; validate `<column>` matches one. If not, list valid
+   columns and STOP.
+3. Find the story card line `[<ID>]` and capture its indented sub-issues (the
+   contiguous deeper-indented `- [ ]` lines beneath it).
+4. Remove the card + its sub-issues from their current column.
+5. Append them as the last card under the target `## <column>`.
+6. Set the card's checkbox: `- [x]` iff target is `Done`, else `- [ ]`.
+   (Leave sub-issue checkboxes unchanged.)
+7. Preserve frontmatter and the settings block. Confirm: `<ID> → <column>`.

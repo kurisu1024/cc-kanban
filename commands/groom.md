@@ -1,14 +1,16 @@
 ---
-description: Collaboratively groom the backlog — set priority, size, epic, and links.
-argument-hint: "[--epic PREFIX] [--global|--project]"
+description: Set priority/size/epic tags on cards collaboratively.
 ---
 
-Apply the `kanban-conventions` skill.
+Apply the `kanban-conventions` skill. Groom cards by editing their tags.
 
-- Resolve the store and gather `backlog` items (optionally filtered by
-  `--epic`).
-- Walk them with the user a few at a time: propose `priority` / `size` / `epic` /
-  `labels` and any obvious dependency links, and ask for confirmation or edits.
-- Apply confirmed changes to the item files (bump `updated`), then regenerate
-  `board.md`.
-- Keep it interactive and incremental — never bulk-rewrite without confirmation.
+Args: `--epic <slug>` (limit to one epic), `--board <name|path>`.
+
+Steps:
+1. Resolve the board (skill §1). Collect story cards (optionally filtered to
+   `#epic/<slug>`).
+2. For each card lacking `#p/` or `#sz/`, propose values and ask the user
+   (batch the questions). Respect existing tags unless told to change.
+3. Apply confirmed tags by rewriting only that card's text (normalize order:
+   `#epic/… #p/… #sz/…`). Do not touch other lines.
+4. Summarize what changed.
